@@ -1,0 +1,10 @@
+Binance
+{% for balance in balances %}
+
+==========================
+
+{{ balance.commandName }} profit {{ balance.profit }}% , Est: {{ balance.est }}
+Last-bought-price: {{ balance.lastBoughtPrice }}, Current-price {{ balance.currentPrice }}
+Total: {{ balance.total }}, Available: {{ balance.available }} {{ balance.havingAsset }}
+{% endfor %}
+

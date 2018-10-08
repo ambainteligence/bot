@@ -1,0 +1,10 @@
+vendor/
+messenger1/vendor
+ngrok
+/.env
+.DS_Store
+.data
+var/
+.idea/
+.env
+.env.dist

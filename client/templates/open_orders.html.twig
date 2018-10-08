@@ -1,0 +1,13 @@
+  All open orders:
+Binance
+{% for order in orders %}
+{% if order.side == "SELL" %}
+<=========== {{ loop.index }} ==============
+{% else %}
+============ {{ loop.index }} =============>
+{% endif %}
+{{ order.side }} {{ order.type }} {{  order.symbolName }}
+Price: {{ order.price }} {% if order.stopPrice is not null %} Stop-Price: {{ order.stopPrice }} {% endif %}
+Total: {{ order.total }}
+
+{% endfor %}

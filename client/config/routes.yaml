@@ -1,0 +1,21 @@
+index:
+    path: /
+    defaults: { _controller: 'App\Controller\BinanceController::webHookTelegram' }
+#    defaults: { _controller: 'App\Controller\BinanceController::temp' }
+
+#test:
+#    path: /test
+#    defaults: { _controller: 'App\Controller\BinanceController::webHookTelegram' }
+
+telegram:
+    path: /telegram
+    defaults: { _controller: 'App\Controller\TelegramController::setDomainName' }
+
+
+websocket:
+    path: /websocket
+    defaults: { _controller: 'App\Controller\BinanceController::testWebsocket' }
+
+test:
+    path: /test
+    defaults: { _controller: 'App\Controller\BinanceController::test' }

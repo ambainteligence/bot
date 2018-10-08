@@ -1,0 +1,39 @@
+version: '2'
+services:
+    db:
+        image: mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: trading
+        volumes:
+            - './.data/mysql:/var/lib/mysql'
+    client_app:
+        build: ./client/build/app
+        ports:
+            - 83:80
+        volumes:
+            - ./client:/app
+        links:
+            - db
+        depends_on:
+            - db
+    websocket_app:
+        build: ./websocket/build/app
+        ports:
+            - 84:80
+        volumes:
+            - ./websocket:/app
+            - ./ws-init.sh:/usr/local/bin/apache2-custom.sh
+        links:
+            - db
+        depends_on:
+            - db
+    testsocket_app:
+        build: ./testsocket/build/app
+        ports:
+            - 85:80
+        volumes:
+            - ./testsocket:/app
+        links:
+            - db
+#        command: ["/app/ws-init.sh"]

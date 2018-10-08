@@ -1,0 +1,15 @@
+You are going to create a new buy order on {{ exchange }}
+Market name:          {{ command_name }}
+Amount:               {{ quantity }} {{ target_asset }}
+Price:                {{ price }} {{ having_asset }}
+(diff: {{ percent }})%
+Current Price (Ask):  {{ current_price }} {{ having_asset }}
+Total:                {{ total }} {{ having_asset }}
+
+{% if stop is not null %}
+==========><============
+Stop at: {{ stop }}
+Limit at: {{ limit }}
+{% endif %}
+-------------------------
+To complete the request, please copy and enter the test: /{{ uuid }}
