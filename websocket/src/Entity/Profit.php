@@ -36,6 +36,11 @@ class Profit
      */
     private $percent;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $data;
+
     public function getId()
     {
         return $this->id;
@@ -85,6 +90,18 @@ class Profit
     public function setPercent(?string $percent): self
     {
         $this->percent = $percent;
+
+        return $this;
+    }
+
+    public function getData(): ?string
+    {
+        return $this->data;
+    }
+
+    public function setData(?string $data): self
+    {
+        $this->data = $data;
 
         return $this;
     }

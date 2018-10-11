@@ -21,17 +21,15 @@ class BinanceExchange
     return $this->api->buy($symbol, $quantity, $price);
   }
 
-  public function getCurrentQuantityBySymbol($baseAsset, $percent) {
+  public function getCurrentQuantityBySymbol($baseAsset, $percent = 100) {
     $balances = $this->api->balances();
     $balance = $balances[$baseAsset];
     return ($balance['available'] * $percent) / 100;
   }
 
-  public function calculateQuantity($symbol, $quantity) {
-    $symbolInfo = $this->getSymbolInfomation($symbol);
-
+  public function calculateQuantity($symbolDetail = 'BTC', $quantity) {
     return ($percent = BaseCommand::isPercent($quantity))
-      ? $this->getCurrentQuantityBySymbol($symbolInfo['baseAsset'], $percent)
+      ? $this->getCurrentQuantityBySymbol($symbolDetail, $percent)
       : $quantity;
   }
 
@@ -204,7 +202,7 @@ class BinanceExchange
   public function getConfirmInformation($symbol, $quantity, $price)
   {
     $symbolInfo = $this->getSymbolInfomation($symbol);
-    $quantity = $this->calculateQuantity($symbol, $quantity);
+    $quantity = $this->calculateQuantity($symbolInfo['baseAsset'], $quantity);
 
     $currentPrice = $this->getCurrentPrice($symbol);
     $diff = $this->percentIncreate($currentPrice, $price);
