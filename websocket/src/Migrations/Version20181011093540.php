@@ -17,7 +17,7 @@ class Version20181011093540 extends AbstractMigration
 
         $this->addSql('DROP TABLE back_activity');
         $this->addSql('DROP TABLE back_profit_month');
-        $this->addSql('ALTER TABLE activity CHANGE trade_id trade_id VARCHAR(255) NOT NULL');
+        $this->addSql('ALTER TABLE activity CHANGE trade_id trade_id VARCHAR(255) NULL');
         $this->addSql('ALTER TABLE profit ADD data LONGTEXT DEFAULT NULL');
     }
 

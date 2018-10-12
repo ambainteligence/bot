@@ -38,5 +38,6 @@ trait BinanceServiceTrait
         // total ADA
         $quantity = $this->calculateBalancePercent($balance, $percent);
         $binance->sell($symbol, $quantity, $price);
+        return $quantity * $price;
     }
 }

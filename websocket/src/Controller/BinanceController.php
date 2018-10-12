@@ -30,6 +30,8 @@ class BinanceController extends Controller
     // config
     const TIME             = 15 * 60; // 3 minutues
     const PREVIOUS_CANDLES = 2; // recheck previous candles
+    const SYMBOL = 'ADAUSDT';
+    const CANDLE_TIME = '1h';
 
     const BUY  = 'buy';
     const SELL = 'sell';
@@ -46,6 +48,7 @@ class BinanceController extends Controller
     private $helper;
     private $templateService;
 
+    use CandlesTrait;
     use Strategies;
 
     public function __construct(HelperService $helper, TemplateService $templateService)
@@ -84,7 +87,7 @@ class BinanceController extends Controller
         //        $helper = $this->helper->getExchange('bn', 1);
 
         //        $this->helper->binanceBuy('ONTUSDT', 1, $price = 2, '100%');
-        //        $this->helper->binanceSell('ONTUSDT', 1, $price = 3, '100%');
+//        $this->helper->binanceSell('ONTUSDT', 1, $price = 3, '100%');
         return new Response('ok');
     }
 
@@ -96,7 +99,7 @@ class BinanceController extends Controller
         //=============
         $minute = time();
 
-        $api->chart(["ADAUSDT"], "1h", function ($api, $symbol, $chart) use (&$minute) {
+        $api->chart([self::SYMBOL], self::CANDLE_TIME, function ($api, $symbol, $chart) use (&$minute) {
             $currentChart = array_pop($chart);
             $currentClose = $currentChart['close'];
             //      array_pop($chart);
@@ -110,39 +113,17 @@ class BinanceController extends Controller
             $minute = $currentTime;
 
             try {
-                $candles = $this->binance->candlesticks('ADAUSDT', "1h", 50);
+                $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, 50);
                 $data = $this->changeCandlesToData($candles);
 
                 $text = '';
-                //         case 1
-                //        $bb_rsi = $this->bowhead_bband_rsi('', $data, false, $text);
-                //        $text .= ' result: ' . $bb_rsi;
-                //         case 2
-                //        $double_vol = $this->bowhead_double_volatility('', $data, false, $text);
-                //        case 3 // should try again
-                //        $fiveElement = $this->bowhead_5th_element('', $data, false, $text);
-                //        $text .= ' result: ' . $fiveElement;
-                //        case 4
-                $macd = $this->phuongb_bowhead_macd('', $data, false, $text);
-                $text .= ' prev: ' . $preCurrentClose;
-                //      case 5
-                //        $stoch = $this->phuongb_bowhead_macd('', $data, false, $text);
-                //        $text .= ' result: ' . $stoch;
 
                 $ex = $this->helper->getExchange('bn', 1);
+                $macd = $this->getResultOfStrategy($data, 'phuongb_bowhead_macd', 0, $text);
 
                 // has buyer
                 if ($activity = $this->helper->findActivityByOutcome(1, self::BUY)) {
-                    //            case 1
-                    //            if ($bb_rsi === -1) {
-                    //            case 2
-                    //            if ($double_vol === 1) {
-                    //            case 3
-                    //          if ($fiveElement === -1) {
-                    //          case 4
                     if ($macd === self::SHOULD_SELL) {
-                        //          case 5
-                        //          if ($stoch === -1) {
                         $beforeData = json_decode($activity->getData(), true);
                         if ($beforeData['prev'] != $preCurrentClose) {
                             $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
@@ -151,20 +132,17 @@ class BinanceController extends Controller
                             $activity->setOutcome(self::SELL);
                             $activity->setData(json_encode($data));
                             $this->helper->updateActivityForSeller($activity);
-                            $this->helper->calculatorProfit($uid = 1, date('d/m/Y'), $percent);
+
+                            // sell symbol
+                            $money = $this->helper->binanceSell(self::SYMBOL, 1, $data['current_price'], '100%');
+                            $this->helper->calculatorProfit($uid = 1, date('d/m/Y'), $percent, $money);
+
                             $text .= ' ready for seller';
                             Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
                         }
                     }
                 }
                 else {
-                    //          case 1
-                    //          if ($bb_rsi === 1) {
-                    //          case 2
-                    //          if ($double_vol === -1) {
-                    //          case 3
-                    //          if ($fiveElement === 1) {
-                    //          case 4
                     if ($macd === self::SHOULD_BUY
                         && $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', self::PREVIOUS_CANDLES) === self::SHOULD_SELL
                     ) {
@@ -174,6 +152,9 @@ class BinanceController extends Controller
                         $this->helper->insertActivity(Uuid::uuid4()->toString(), 1, 'App\Command\BuyCommand', 'bn', self::BUY, $data);
                         $text .= ' ready for buyer';
                         Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
+
+                        // buy symbol
+                        $this->helper->binanceBuy(self::SYMBOL, 1, $data['price'], '100%');
                     }
                 }
                 Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
@@ -186,39 +167,7 @@ class BinanceController extends Controller
         return new Response('ok');
     }
 
-    public function changeCandlesToData($candles)
-    {
-        $close = $this->getCandleBySign($candles, 'close');
-        $high = $this->getCandleBySign($candles, 'high');
-        $low = $this->getCandleBySign($candles, 'low');
 
-        return [
-            'close' => $close,
-            'high'  => $high,
-            'low'   => $low,
-        ];
-    }
-
-    public function getCandleBySign($candles, $sign)
-    {
-        $results = [];
-        foreach ($candles as $candle) {
-            $results[] = $candle[$sign];
-        }
-
-        return $results;
-    }
-
-    public function getResultOfStrategy($candles, $strategyName = 'phuongb_bowhead_stoch', $previousTimes = 0)
-    {
-        // get previous data
-        for ($time = 0; $time < $previousTimes; $time++) {
-            array_pop($candles);
-        }
-        $data = $this->changeCandlesToData($candles);
-
-        return $this->{$strategyName}('', $data, false);
-    }
 
 }
 

@@ -91,13 +91,14 @@ class HelperService
         return $this->profitRepo->findOneBy(['uid' => $userId, 'exchange' => $exchange, 'created_date' => $createdDate]);
     }
 
-    public function insertProfit($uid, $exchange, $createdDate, $percent)
+    public function insertProfit($uid, $exchange, $createdDate, $percent, $data)
     {
         $profit = new Profit();
         $profit->setUid($uid);
         $profit->setExchange($exchange);
         $profit->setCreatedDate($createdDate);
         $profit->setPercent($percent);
+        $profit->setData($data);
         $this->entityManage->persist($profit);
         $this->entityManage->flush();
     }
@@ -108,14 +109,16 @@ class HelperService
         $this->entityManage->flush();
     }
 
-    public function calculatorProfit($uid, $time, $percent, $exchange = 'bn')
+    public function calculatorProfit($uid, $time, $percent, $money, $exchange = 'bn')
     {
         $profit = $this->findProfitByCreatedDate($uid, $time, $exchange);
+        $data = json_encode(['money' => $money]);
         if (!$profit) {
-            $this->insertProfit($uid, $exchange, $time, $percent);
+            $this->insertProfit($uid, $exchange, $time, $percent, $data);
         }
         else {
             $profit->setPercent($profit->getPercent() + $percent);
+            $profit->setData($data);
             $this->updateProfit($profit);
         }
     }
