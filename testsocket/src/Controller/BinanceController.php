@@ -211,6 +211,22 @@ class BinanceController extends Controller
 
     public function testWebsocket()
     {
+//        $candles = $this->binance->candlesticks('ADAUSDT', '5m', 50);
+//        $macd = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
+//        dump($macd);
+//        return new Response('ok fine');
+
+        $candles = $this->binance->candlesticks('ADAUSDT', '5m', 50);
+        $text = '';
+
+        $ex = $this->helper->getExchange('bn', 1);
+        $macd = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
+        dump($macd);
+        return new Response('ok fine');
+    }
+
+    public function testWebsocket1()
+    {
         ini_set('trader.real_precision', '8');
         //    $api = $this->binance;
         //
@@ -270,6 +286,7 @@ class BinanceController extends Controller
         }
 
         $data = $this->changeCandlesToData($candles);
+        dump($data);
 
         return $this->{$strategyName}('', $data, false, $text);
     }

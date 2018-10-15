@@ -28,10 +28,12 @@ use App\Controller\Strategies;
 class BinanceController extends Controller
 {
     // config
-    const TIME             = 15 * 60; // 3 minutues
-    const PREVIOUS_CANDLES = 2; // recheck previous candles
+    const TIME             = 2 * 60; // 5 minutues
+    const PREVIOUS_CANDLES = 5; // recheck previous candles
     const SYMBOL = 'ADAUSDT';
-    const CANDLE_TIME = '1h';
+    const CANDLE_TIME = '5m';
+    const PERCENT_BUY = '100%';
+    const PERCENT_SELL = '100%';
 
     const BUY  = 'buy';
     const SELL = 'sell';
@@ -80,18 +82,23 @@ class BinanceController extends Controller
         return $update->getMessage()->getChat()->username;
     }
 
-    public function testWebsocket()
+    public function testWebsocket1()
     {
         ini_set('trader.real_precision', '8');
+
         //        $api = $this->binance;
         //        $helper = $this->helper->getExchange('bn', 1);
 
         //        $this->helper->binanceBuy('ONTUSDT', 1, $price = 2, '100%');
 //        $this->helper->binanceSell('ONTUSDT', 1, $price = 3, '100%');
+//        $money = $this->helper->binanceSell(self::SYMBOL, 1, '0.08381000', '100%');
+//        $this->helper->calculatorProfit($uid = 1, date('d/m/Y'), $percent = '-1.21', $money);
+//        dump($money);
+//        $this->helper->binanceBuy(self::SYMBOL, 1, '0.06372000', self::PERCENT_BUY);
         return new Response('ok');
     }
 
-    public function testWebsocket1()
+    public function testWebsocket()
     {
         ini_set('trader.real_precision', '8');
         $api = $this->binance;
@@ -102,7 +109,6 @@ class BinanceController extends Controller
         $api->chart([self::SYMBOL], self::CANDLE_TIME, function ($api, $symbol, $chart) use (&$minute) {
             $currentChart = array_pop($chart);
             $currentClose = $currentChart['close'];
-            //      array_pop($chart);
             $preCurrentClose = array_pop($chart);
             $preCurrentClose = $preCurrentClose['close'];
 
@@ -114,12 +120,10 @@ class BinanceController extends Controller
 
             try {
                 $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, 50);
-                $data = $this->changeCandlesToData($candles);
-
                 $text = '';
 
                 $ex = $this->helper->getExchange('bn', 1);
-                $macd = $this->getResultOfStrategy($data, 'phuongb_bowhead_macd', 0, $text);
+                $macd = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
 
                 // has buyer
                 if ($activity = $this->helper->findActivityByOutcome(1, self::BUY)) {
@@ -134,7 +138,7 @@ class BinanceController extends Controller
                             $this->helper->updateActivityForSeller($activity);
 
                             // sell symbol
-                            $money = $this->helper->binanceSell(self::SYMBOL, 1, $data['current_price'], '100%');
+                            $money = $this->helper->binanceSell(self::SYMBOL, 1, $data['current_price'], self::PERCENT_SELL);
                             $this->helper->calculatorProfit($uid = 1, date('d/m/Y'), $percent, $money);
 
                             $text .= ' ready for seller';
@@ -154,10 +158,10 @@ class BinanceController extends Controller
                         Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
 
                         // buy symbol
-                        $this->helper->binanceBuy(self::SYMBOL, 1, $data['price'], '100%');
+                        $this->helper->binanceBuy(self::SYMBOL, 1, $data['price'], self::PERCENT_BUY);
                     }
                 }
-                Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
+                Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text . ' result1: ' . $macd]);
             }
             catch (\Exception $e) {
                 Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $e->getMessage()]);
@@ -166,8 +170,6 @@ class BinanceController extends Controller
 
         return new Response('ok');
     }
-
-
 
 }
 
