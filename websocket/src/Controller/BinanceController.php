@@ -28,11 +28,11 @@ use App\Controller\Strategies;
 class BinanceController extends Controller
 {
     // config
-    const TIME             = 2 * 60; // 5 minutues
+    const TIME             = 5 * 60; // 5 minutues
     const PREVIOUS_CANDLES = 5; // recheck previous candles
-    const SYMBOL = 'ADAUSDT';
-    const CANDLE_TIME = '5m';
-    const PERCENT_BUY = '100%';
+    const SYMBOL = 'ADABTC';
+    const CANDLE_TIME = '15m';
+    const PERCENT_BUY = '20%';
     const PERCENT_SELL = '100%';
 
     const BUY  = 'buy';
