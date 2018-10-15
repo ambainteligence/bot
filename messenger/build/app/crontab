@@ -1,1 +1,0 @@
-*/1 * * * * echo "This is a test" >> /var/log/cron.log 2>&1
