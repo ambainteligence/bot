@@ -32,7 +32,7 @@ class BinanceController extends Controller
     const PREVIOUS_CANDLES = 5; // recheck previous candles
     const SYMBOL = 'ADAUSDT';
     const CANDLE_TIME = '15m';
-    const PERCENT_BUY = '20%';
+    const PERCENT_BUY = '30%';
     const PERCENT_SELL = '100%';
 
     const BUY  = 'buy';
