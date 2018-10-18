@@ -30,9 +30,9 @@ class BinanceController extends Controller
     // config
     const TIME             = 5 * 60; // 5 minutues
     const PREVIOUS_CANDLES = 5; // recheck previous candles
-    const SYMBOL = 'ADAETH';
+    const SYMBOL = 'ADAUSDT';
     const CANDLE_TIME = '15m';
-    const PERCENT_BUY = '100%';
+    const PERCENT_BUY = '30%';
     const PERCENT_SELL = '100%';
 
     const BUY  = 'buy';
@@ -52,6 +52,7 @@ class BinanceController extends Controller
 
     use CandlesTrait;
     use Strategies;
+    use ReportTrail;
 
     public function __construct(HelperService $helper, TemplateService $templateService)
     {
@@ -66,6 +67,7 @@ class BinanceController extends Controller
         $this->helper = $helper;
         $this->templateService = $templateService;
         ini_set('trader.real_precision', '8');
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
     }
 
     public function getText()
@@ -86,6 +88,7 @@ class BinanceController extends Controller
     {
         ini_set('trader.real_precision', '8');
 
+
         //        $api = $this->binance;
         //        $helper = $this->helper->getExchange('bn', 1);
 
@@ -95,6 +98,14 @@ class BinanceController extends Controller
 //        $this->helper->calculatorProfit($uid = 1, date('d/m/Y'), $percent = '-1.21', $money);
 //        dump($money);
 //        $this->helper->binanceBuy(self::SYMBOL, 1, '0.06372000', self::PERCENT_BUY);
+        $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, 50);
+        $end = end($candles);
+        $price = $end['open'];
+        $result = 1;
+        $time = $end['openTime'];
+        dump($candles);
+        dump($this->reportPriceResultTime($price, $result, $time));
+
         return new Response('ok');
     }
 
@@ -125,6 +136,9 @@ class BinanceController extends Controller
                 $ex = $this->helper->getExchange('bn', 1);
                 $macd = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
 
+                $candle = end($candles);
+                $text = $this->reportPriceResultTime($candle['open'], $macd, $candle['openTime']);
+
                 // has buyer
                 if ($activity = $this->helper->findActivityByOutcome(1, self::BUY)) {
                     if ($macd === self::SHOULD_SELL) {
@@ -141,27 +155,27 @@ class BinanceController extends Controller
                             $money = $this->helper->binanceSell(self::SYMBOL, 1, $data['current_price'], self::PERCENT_SELL);
                             $this->helper->calculatorProfit($uid = 1, date('d/m/Y'), $percent, $money);
 
-                            $text .= ' ready for seller';
+                            $text .= ' ready for seller. Percent: ' . $data['percent'];
                             Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
                         }
                     }
                 }
-                else {
-                    if ($macd === self::SHOULD_BUY
-                        && $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', self::PREVIOUS_CANDLES) === self::SHOULD_SELL
-                    ) {
-                        // buy at here
-                        // $uuid, $uid, $class, $exchange, $outcome, $data
-                        $data = ['price' => $ex->getCurrentPrice('ADAUSDT'), 'close' => $currentClose, 'prev' => $preCurrentClose];
-                        $this->helper->insertActivity(Uuid::uuid4()->toString(), 1, 'App\Command\BuyCommand', 'bn', self::BUY, $data);
-                        $text .= ' ready for buyer';
-                        Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
+                elseif ($macd === self::SHOULD_BUY
+                    && $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', self::PREVIOUS_CANDLES) === self::SHOULD_SELL)
+                {
+                    // buy at here
+                    // $uuid, $uid, $class, $exchange, $outcome, $data
+                    $data = ['price' => $ex->getCurrentPrice('ADAUSDT'), 'close' => $currentClose, 'prev' => $preCurrentClose];
+                    $this->helper->insertActivity(Uuid::uuid4()->toString(), 1, 'App\Command\BuyCommand', 'bn', self::BUY, $data);
+                    $text .= ' ready for buyer';
+                    Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
 
-                        // buy symbol
-                        $this->helper->binanceBuy(self::SYMBOL, 1, $data['price'], self::PERCENT_BUY);
-                    }
+                    // buy symbol
+                    $this->helper->binanceBuy(self::SYMBOL, 1, $data['price'], self::PERCENT_BUY);
                 }
-                Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text . ' result1: ' . $macd]);
+                else {
+                    Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
+                }
             }
             catch (\Exception $e) {
                 Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $e->getMessage()]);
