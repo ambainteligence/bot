@@ -28,7 +28,7 @@ trait CandlesTrait
         return $results;
     }
 
-    public function getResultOfStrategy($candles, $strategyName = 'phuongb_bowhead_macd', $previousTimes = 0, &$text = '')
+    public function getResultOfStrategy(&$candles, $strategyName = 'phuongb_bowhead_macd', $previousTimes = 0, &$text = '')
     {
         // get previous data
         for ($time = 0; $time < $previousTimes; $time++) {
