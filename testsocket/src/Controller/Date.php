@@ -15,9 +15,9 @@ trait Date
         return strtotime($time) * 1000;
     }
 
-    public function changeMillisecondToTimeString($millisecond) {
+    public function changeMillisecondToTimeString($millisecond, $format = 'd/m/Y') {
         $time = $millisecond / 1000;
-        return date('d/m/Y', $time);
+        return date($format, $time);
     }
 
     public function changeTimestampToTimeString($timestamp, $format = 'd/m/Y') {

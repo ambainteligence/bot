@@ -134,17 +134,17 @@ class BinanceController extends Controller
 
                 $ex = $this->helper->getExchange('bn', 1);
                 $macd = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
-
                 $candle = end($candles);
 
                 $prevCandles = null;
                 $prevCandlesStr = '';
                 if ($macd === self::SHOULD_BUY) {
                     $prevCandles = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', self::PREVIOUS_CANDLES);
+                    $prevCandle = end($candles);
+                    $prevCandleTime = $this->changeMillisecondToTimeString($prevCandle['openTime'], 'H:i');
                     $prevCandlesStr = ($prevCandles === 1) ? self::BUY : self::SELL;
-                    $prevCandlesStr = ' Previous ' . self::PREVIOUS_CANDLES . ' candle: ' . $prevCandlesStr;
+                    $prevCandlesStr = ', Previous ' . self::PREVIOUS_CANDLES . ' candle: ' . $prevCandlesStr . ' at ' . $prevCandleTime . ' | ';
                 }
-
                 $text = $this->reportPriceResultTime($candle['open'], $macd, $candle['openTime'], $prevCandlesStr);
 
                 // has buyer
