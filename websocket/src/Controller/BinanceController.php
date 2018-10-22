@@ -184,7 +184,7 @@ class BinanceController extends Controller
                     $action = 1;
                 }
 
-                if (1 === $action) {
+                if (0 === $action) {
                     Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
                 }
             }
