@@ -98,14 +98,17 @@ class BinanceController extends Controller
         //        $this->helper->calculatorProfit($uid = 1, date('d/m/Y'), $percent = '-1.21', $money);
         //        dump($money);
         //        $this->helper->binanceBuy(self::SYMBOL, 1, '0.06372000', self::PERCENT_BUY);
-        $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, 50);
-        $end = end($candles);
-        $price = $end['open'];
-        $result = 1;
-        $time = $end['openTime'];
-        dump($candles);
-        dump($this->reportPriceResultTime($price, $result, $time));
+        //        $from = ''
+//        $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 100, null, '1539963000000');
+        $myTime = $this->changeTimeStringToMilliSecond('22:10:2018 19:15', 'd:m:Y H:i');
+        $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 50, null, $myTime);
+        $text = '';
+        $prevCandles = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
+        dump($text);
+        dump($prevCandles);
 
+        $end = array_pop($candles); // 22h:15
+        dump($this->changeMillisecondToTimeString($end['openTime'], 'd:m:Y H:i'));
         return new Response('ok');
     }
 
