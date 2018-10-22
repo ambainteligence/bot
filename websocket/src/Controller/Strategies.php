@@ -258,7 +258,7 @@ trait Strategies
       $return['strategy'] = 'rsi_macd';
       return ($return_full ? $return : 1);
     }
-    if ($macd < 0) {
+    if ($signalCurrent < 0) {
       $return['side']     = 'short';
       $return['strategy'] = 'rsi_macd';
       return ($return_full ? $return : -1);
