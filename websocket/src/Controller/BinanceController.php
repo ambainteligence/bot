@@ -146,6 +146,7 @@ class BinanceController extends Controller
                     $prevCandlesStr = ', Previous ' . self::PREVIOUS_CANDLES . ' candle: ' . $prevCandlesStr . ' at ' . $prevCandleTime . ' | ';
                 }
                 $text = $this->reportPriceResultTime($candle['open'], $macd, $candle['openTime'], $prevCandlesStr);
+                $action = 0;
 
                 // has buyer
                 if ($activity = $this->helper->findActivityByOutcome(1, self::BUY)) {
@@ -165,6 +166,7 @@ class BinanceController extends Controller
 
                             $text .= ' ready for seller. Percent: ' . $data['percent'];
                             Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
+                            $action = 1;
                         }
                     }
                 }
@@ -179,9 +181,11 @@ class BinanceController extends Controller
 
                     // buy symbol
                     $this->helper->binanceBuy(self::SYMBOL, 1, $data['price'], self::PERCENT_BUY);
+                    $action = 1;
                 }
-                else {
-                   Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
+
+                if (1 === $action) {
+                    Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
                 }
             }
             catch (\Exception $e) {
