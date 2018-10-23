@@ -28,11 +28,11 @@ use App\Controller\Strategies;
 class BinanceController extends Controller
 {
     // config
-    const TIME             = 1 * 60; // 5 minutues
-    const PREVIOUS_CANDLES = 1; // recheck previous candles
+    const TIME             = 3 * 60; // 5 minutues
+    const PREVIOUS_CANDLES = 3; // recheck previous candles
     const SYMBOL = 'ADAUSDT';
     const CANDLE_TIME = '15m';
-    const PERCENT_BUY = '30%';
+    const PERCENT_BUY = '100%';
     const PERCENT_SELL = '100%';
 
     const BUY  = 'buy';
@@ -88,7 +88,6 @@ class BinanceController extends Controller
     {
         ini_set('trader.real_precision', '8');
 
-
         //        $api = $this->binance;
         //        $helper = $this->helper->getExchange('bn', 1);
 
@@ -100,15 +99,30 @@ class BinanceController extends Controller
         //        $this->helper->binanceBuy(self::SYMBOL, 1, '0.06372000', self::PERCENT_BUY);
         //        $from = ''
 //        $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 100, null, '1539963000000');
-        $myTime = $this->changeTimeStringToMilliSecond('22:10:2018 19:15', 'd:m:Y H:i');
-        $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 50, null, $myTime);
-        $text = '';
-        $prevCandles = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
-        dump($text);
-        dump($prevCandles);
-
-        $end = array_pop($candles); // 22h:15
-        dump($this->changeMillisecondToTimeString($end['openTime'], 'd:m:Y H:i'));
+//        $myTime = $this->changeTimeStringToMilliSecond('23:10:2018 16:00', 'd:m:Y H:i');
+//        $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 50, null, $myTime);
+//        $text = '';
+////        $prevCandles = $this->getResultOfStrategy($candles, 'bowhead_5th_element', 0, $text);
+//
+//        // 0.00067
+//        $prevCandles = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
+//        dump($prevCandles);
+//        dump($text);
+//
+////        $sma = $this->getResultOfStrategy($candles, 'phuongb_bowhead_sma', 0, $text);
+////        $price = '0.077';
+////        $result = $sma - $price;
+////        dump($sma);
+////        // 0.07670714
+////        if ($this->comparePriceSMA($price, $sma) === self::SHOULD_BUY) {
+////            dump('sma text long');
+////        }
+////        else {
+////            dump('sma text short');
+////        }
+//
+//        $end = array_pop($candles); // 22h:15
+//        dump($this->changeMillisecondToTimeString($end['openTime'], 'd:m:Y H:i'));
         return new Response('ok');
     }
 
@@ -188,6 +202,7 @@ class BinanceController extends Controller
                 }
 
                 if (0 === $action) {
+                    $this->recheckActionTrading();
                     Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
                 }
             }
@@ -197,6 +212,23 @@ class BinanceController extends Controller
         });
 
         return new Response('ok');
+    }
+
+    public function recheckActionTrading()
+    {
+        $ex = $this->helper->getExchange('bn', 1);
+        $uid = 1;
+        $price = $ex->getCurrentPrice('ADAUSDT');
+        if ($activity = $this->helper->findActivityByOutcome($uid, self::BUY)) {
+            if ($this->helper->checkQuantity(self::SYMBOL, $uid, self::BUY)) {
+                $this->helper->binanceBuy(self::SYMBOL, $uid, $price, self::PERCENT_BUY);
+            }
+        }
+        else {
+            if ($this->helper->checkQuantity(self::SYMBOL, $uid, self::SELL)) {
+                $this->helper->binanceSell(self::SYMBOL, $uid, $price, self::PERCENT_SELL);
+            }
+        }
     }
 
 }

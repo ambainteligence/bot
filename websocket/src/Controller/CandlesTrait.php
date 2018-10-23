@@ -10,11 +10,13 @@ trait CandlesTrait
         $close = $this->getCandleBySign($candles, 'close');
         $high = $this->getCandleBySign($candles, 'high');
         $low = $this->getCandleBySign($candles, 'low');
+        $open = $this->getCandleBySign($candles, 'open');
 
         return [
             'close' => $close,
             'high'  => $high,
             'low'   => $low,
+            'open'  => $open
         ];
     }
 
@@ -38,6 +40,12 @@ trait CandlesTrait
         $data = $this->changeCandlesToData($candles);
 
         return $this->{$strategyName}('', $data, false, $text);
+    }
+
+    public function comparePriceSMA($price, $sma)
+    {
+        $result = $sma - $price;
+        return ($result >= 0) ? 1 : -1;
     }
 
 

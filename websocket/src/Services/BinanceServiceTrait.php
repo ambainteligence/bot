@@ -15,8 +15,17 @@ trait BinanceServiceTrait
         $balance = (int) $binance->calculateQuantity($symbolInfo['quoteAsset'], '100%');
         // total USDT
         $quantity = round($this->calculateTargetQuantity($balance, $price, $percent), 1);
-        dump($quantity);
         $binance->buy($symbol, $quantity, $price);
+    }
+
+    public function checkQuantity($symbol = 'ADAUSDT', $uid, $type = 'buy')
+    {
+        /** @var BinanceExchange $binance */
+        $binance = $this->getExchange($sign = 'bn', $uid);
+        $symbolInfo = $binance->getSymbolInfomation($symbol);
+        $asset = ('buy' === $type) ? $symbolInfo['quoteAsset'] : $symbolInfo['baseAsset'];
+        $balance = (int) $binance->calculateQuantity($asset, '100%');
+        return ($balance > 5);
     }
 
     public function calculateTargetQuantity($balance, $price, $percent)
