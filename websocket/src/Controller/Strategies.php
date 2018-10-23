@@ -248,24 +248,26 @@ trait Strategies
     $signalCurrent = array_pop($signal);
     $macd = $macdCurrent - $signalCurrent;
 
-    $text .= ' macd raw: ' . $macdCurrent;
-    $text .= ' signal: ' . $signalCurrent;
-    $text .= ' macd: ' . $macd;
-
     /** macd */
     if ($macd > 0) {
       $return['side']     = 'long';
       $return['strategy'] = 'rsi_macd';
       return ($return_full ? $return : 1);
     }
-    if ($signalCurrent < 0) {
+    if ($signalCurrent < 0 || $macd < 0) {
       $return['side']     = 'short';
       $return['strategy'] = 'rsi_macd';
       return ($return_full ? $return : -1);
     }
     return 0;
-
   }
+
+  public function phuongb_bowhead_sma($pair, $data, $return_full=false, &$text = '')
+  {
+      return $this->sma_maker($data['close'], 7);
+  }
+
+
 
   public function phuongb_bowhead_stoch($pair, $data, $return_full=false, &$text = '')
   {
