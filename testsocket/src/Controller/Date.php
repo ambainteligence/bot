@@ -11,8 +11,9 @@ trait Date
      * @param $time
      * @return false|int
      */
-    public function changeTimeStringToMilliSecond($time) {
-        return strtotime($time) * 1000;
+    public function changeTimeStringToMilliSecond($strTime, $format) {
+        $timeStamp = \DateTime::createFromFormat($format, $strTime)->getTimestamp();
+        return $timeStamp * 1000;
     }
 
     public function changeMillisecondToTimeString($millisecond, $format = 'd/m/Y') {

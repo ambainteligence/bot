@@ -30,6 +30,13 @@ trait CandlesTrait
         return $results;
     }
 
+    /**
+     * @param        $candles
+     * @param string $strategyName
+     * @param int    $previousTimes
+     * @param string $text
+     * @return mixed get result of a strategy at a position
+     */
     public function getResultOfStrategy(&$candles, $strategyName = 'phuongb_bowhead_macd', $previousTimes = 0, &$text = '')
     {
         // get previous data
@@ -40,6 +47,34 @@ trait CandlesTrait
         $data = $this->changeCandlesToData($candles);
 
         return $this->{$strategyName}('', $data, false, $text);
+    }
+
+    /**
+     * @param        $candles
+     * @param string $strategyName
+     * @param int    $previousTimes
+     * @param string $text
+     * @return int   get results of Strategy . 0 => not same, -1 =>
+     */
+    public function getSameResultsOfStrategy(&$candles, $strategyName = 'phuongb_bowhead_macd', $previousTimes = 0, &$text = '')
+    {
+        $begin = 0;
+        $result = 1;
+
+        // get previous data
+        for ($time = 0; $time < $previousTimes; $time++) {
+            array_pop($candles);
+            $data = $this->changeCandlesToData($candles);
+            $result = $this->{$strategyName}('', $data, false, $text);
+            // init begin
+            $begin = ($time == 0) ? $result : $begin;
+
+            if ($begin != $result) {
+                return 0;
+            }
+        }
+
+        return $result;
     }
 
     public function comparePriceSMA($price, $sma)

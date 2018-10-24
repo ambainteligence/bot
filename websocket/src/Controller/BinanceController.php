@@ -29,7 +29,7 @@ class BinanceController extends Controller
 {
     // config
     const TIME             = 3 * 60; // 5 minutues
-    const PREVIOUS_CANDLES = 3; // recheck previous candles
+    const PREVIOUS_CANDLES = 5; // recheck previous candles
     const SYMBOL = 'ADAUSDT';
     const CANDLE_TIME = '15m';
     const PERCENT_BUY = '100%';
@@ -88,41 +88,17 @@ class BinanceController extends Controller
     {
         ini_set('trader.real_precision', '8');
 
-        //        $api = $this->binance;
-        //        $helper = $this->helper->getExchange('bn', 1);
+        $myTime = $this->changeTimeStringToMilliSecond('24:10:2018 19:45', 'd:m:Y H:i');
+        $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 50, null, $myTime);
+        $text = '';
+        $prevCandles = $this->getSameResultsOfStrategy($candles, 'phuongb_bowhead_macd', 4, $text);
+        dump($prevCandles);
 
-        //        $this->helper->binanceBuy('ONTUSDT', 1, $price = 2, '100%');
-        //        $this->helper->binanceSell('ONTUSDT', 1, $price = 3, '100%');
-        //        $money = $this->helper->binanceSell(self::SYMBOL, 1, '0.08381000', '100%');
-        //        $this->helper->calculatorProfit($uid = 1, date('d/m/Y'), $percent = '-1.21', $money);
-        //        dump($money);
-        //        $this->helper->binanceBuy(self::SYMBOL, 1, '0.06372000', self::PERCENT_BUY);
-        //        $from = ''
-//        $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 100, null, '1539963000000');
-//        $myTime = $this->changeTimeStringToMilliSecond('23:10:2018 16:00', 'd:m:Y H:i');
-//        $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 50, null, $myTime);
-//        $text = '';
-////        $prevCandles = $this->getResultOfStrategy($candles, 'bowhead_5th_element', 0, $text);
+//        $prevCandles = $this->getResultOfStrategy($candles, 'bowhead_5th_element', 0, $text);
 //
-//        // 0.00067
+//        0.00067
 //        $prevCandles = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
-//        dump($prevCandles);
-//        dump($text);
-//
-////        $sma = $this->getResultOfStrategy($candles, 'phuongb_bowhead_sma', 0, $text);
-////        $price = '0.077';
-////        $result = $sma - $price;
-////        dump($sma);
-////        // 0.07670714
-////        if ($this->comparePriceSMA($price, $sma) === self::SHOULD_BUY) {
-////            dump('sma text long');
-////        }
-////        else {
-////            dump('sma text short');
-////        }
-//
-//        $end = array_pop($candles); // 22h:15
-//        dump($this->changeMillisecondToTimeString($end['openTime'], 'd:m:Y H:i'));
+
         return new Response('ok');
     }
 
@@ -156,11 +132,16 @@ class BinanceController extends Controller
                 $prevCandles = null;
                 $prevCandlesStr = '';
                 if ($macd === self::SHOULD_BUY) {
-                    $prevCandles = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', self::PREVIOUS_CANDLES);
+                    $prevCandles = $this->getSameResultsOfStrategy($candles, 'phuongb_bowhead_macd', self::PREVIOUS_CANDLES);
                     $prevCandle = end($candles);
                     $prevCandleTime = $this->changeMillisecondToTimeString($prevCandle['openTime'], 'H:i');
-                    $prevCandlesStr = ($prevCandles === 1) ? self::BUY : self::SELL;
-                    $prevCandlesStr = ', Previous ' . self::PREVIOUS_CANDLES . ' candle: ' . $prevCandlesStr . ' at ' . $prevCandleTime . ' | ';
+                    if ($prevCandles == 0) {
+                        $prevCandlesStr = ', can not buy because previous candles do not same values';
+                    }
+                    else {
+                        $prevCandlesStr = ($prevCandles === 1) ? self::BUY : self::SELL;
+                        $prevCandlesStr = ', Previous ' . self::PREVIOUS_CANDLES . ' candle: ' . $prevCandlesStr . ' at ' . $prevCandleTime . ' | ';
+                    }
                 }
                 $text = $this->reportPriceResultTime($candle['open'], $macd, $candle['openTime'], $prevCandlesStr);
                 $action = 0;
