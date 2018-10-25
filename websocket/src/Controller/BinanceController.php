@@ -148,12 +148,13 @@ class BinanceController extends Controller
 
                 // has buyer
                 if ($activity = $this->helper->findActivityByOutcome(1, self::BUY)) {
+                    $beforeData = json_decode($activity->getData(), true);
+                    $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
+                    $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
+                    $data['percent'] = $percent . '%';
+
                     if ($macd === self::SHOULD_SELL) {
-                        $beforeData = json_decode($activity->getData(), true);
-                        if ($beforeData['prev'] != $preCurrentClose) {
-                            $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
-                            $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
-                            $data['percent'] = $percent . '%';
+                        if ($percent < 0.5) {
                             $activity->setOutcome(self::SELL);
                             $activity->setData(json_encode($data));
                             $this->helper->updateActivityForSeller($activity);
@@ -165,6 +166,9 @@ class BinanceController extends Controller
                             $text .= ' ready for seller. Percent: ' . $data['percent'];
                             Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
                             $action = 1;
+                        }
+                        else {
+                            $text .= ' Can not sell because current percent: ' . $data['percent'];
                         }
                     }
                 }
