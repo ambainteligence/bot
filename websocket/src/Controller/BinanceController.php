@@ -154,7 +154,7 @@ class BinanceController extends Controller
                     $data['percent'] = $percent . '%';
 
                     if ($macd === self::SHOULD_SELL) {
-                        if ($percent < 0.5) {
+                        if ($percent > -0.5) {
                             $activity->setOutcome(self::SELL);
                             $activity->setData(json_encode($data));
                             $this->helper->updateActivityForSeller($activity);
