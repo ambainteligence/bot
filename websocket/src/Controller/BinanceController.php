@@ -34,6 +34,7 @@ class BinanceController extends Controller
     const CANDLE_TIME = '15m';
     const PERCENT_BUY = '100%';
     const PERCENT_SELL = '100%';
+    const LIMITED_PERCENT = -0.3;
 
     const BUY  = 'buy';
     const SELL = 'sell';
@@ -154,7 +155,7 @@ class BinanceController extends Controller
                     $data['percent'] = $percent . '%';
 
                     if ($macd === self::SHOULD_SELL) {
-                        if ($percent > -0.5) {
+                        if ($percent > self::LIMITED_PERCENT) {
                             $activity->setOutcome(self::SELL);
                             $activity->setData(json_encode($data));
                             $this->helper->updateActivityForSeller($activity);
