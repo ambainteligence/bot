@@ -34,7 +34,7 @@ class BinanceController extends Controller
     const CANDLE_TIME = '15m';
     const PERCENT_BUY = '100%';
     const PERCENT_SELL = '100%';
-    const LIMITED_PERCENT = -0.3;
+    const LIMITED_PERCENT = -0.4;
 
     const BUY  = 'buy';
     const SELL = 'sell';
