@@ -11,12 +11,14 @@ trait CandlesTrait
         $high = $this->getCandleBySign($candles, 'high');
         $low = $this->getCandleBySign($candles, 'low');
         $open = $this->getCandleBySign($candles, 'open');
+        $vol = $this->getCandleBySign($candles, 'volume');
 
         return [
             'close' => $close,
             'high'  => $high,
             'low'   => $low,
-            'open'  => $open
+            'open'  => $open,
+            'volume' => $vol
         ];
     }
 
@@ -45,7 +47,6 @@ trait CandlesTrait
         }
 
         $data = $this->changeCandlesToData($candles);
-
         return $this->{$strategyName}('', $data, false, $text);
     }
 
@@ -54,7 +55,7 @@ trait CandlesTrait
      * @param string $strategyName
      * @param int    $previousTimes
      * @param string $text
-     * @return int   get results of Strategy . 0 => not same, -1 =>
+     * @return int   get results of Strategy . 0 => not same, -1 => false, 1 => true
      */
     public function getSameResultsOfStrategy(&$candles, $strategyName = 'phuongb_bowhead_macd', $previousTimes = 0, &$text = '')
     {
@@ -70,9 +71,16 @@ trait CandlesTrait
             $begin = ($time == 0) ? $result : $begin;
 
             if ($begin != $result) {
+                $text .= ' , can not buy because previous candles do not same values';
                 return 0;
             }
         }
+
+        $endCandle = end($candles);
+        $endCandleTime = $this->changeMillisecondToTimeString($endCandle['openTime'], 'H:i');
+
+        $statusResult = ($result === 1) ? self::BUY : self::SELL;
+        $text .= ', Previous ' . self::PREVIOUS_CANDLES . ' candle: ' . $statusResult . ' at ' . $endCandleTime . ' | ';
 
         return $result;
     }
