@@ -29,7 +29,7 @@ trait CustomStrategies
 
         // add 5 elements
         $histogram = $this->bowhead_5th_element($pair, $data, $return_full, $text);
-        $text = 'macd: ' . $macd . ' signal ' . $signalCurrent . ' histogram: ' . $histogram;
+//        $text = 'macd: ' . $macd . ' signal ' . $signalCurrent . ' histogram: ' . $histogram;
         /** macd */
         if ($macd < 0 || $histogram < 0) {
             $return['side'] = 'short';
