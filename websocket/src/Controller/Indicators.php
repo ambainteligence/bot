@@ -282,7 +282,6 @@ class Indicators
         return 0;
       }
     }
-    print_r($macd);
     return -2;
   }
 
@@ -300,7 +299,7 @@ class Indicators
    * RSI can also be used to confirm trend formations. If you think a trend is forming, wait for
    * RSI to go above or below 50 (depending on if you’re looking at an uptrend or downtrend) before you enter a trade.
    */
-  public function rsi($pair='BTC/USD', $data=null, $period=14, &$text)
+  public function rsi($pair='BTC/USD', $data=null, $period=14, &$text = '')
   {
     $LOW_RSI  = 30;
     $HIGH_RSI = 70;
@@ -315,7 +314,6 @@ class Indicators
     $rsi = trader_rsi ($data['close'], $period);
     $rsi = array_pop($rsi);
     $text .= ' rsi: ' . $rsi;
-
     # RSI is above 70 and we own, sell
     if ($rsi > $HIGH_RSI) {
       return -1;
@@ -493,7 +491,6 @@ class Indicators
 
     $mfi = trader_mfi($data['high'], $data['low'], $data['close'], $data['volume'], $period);
     $mfi = array_pop($mfi); #[count($mfi) - 1];
-
     if ($mfi > 80) {
       return -1; // overbought
     } elseif ($mfi < 10) {
@@ -526,7 +523,6 @@ class Indicators
     $current_obv = array_pop($_obv); #[count($_obv) - 1];
     $prior_obv   = array_pop($_obv); #[count($_obv) - 2];
     $earlier_obv = array_pop($_obv); #[count($_obv) - 3];
-
     /**
      *   This forecasts a trend in the last three periods
      *   TODO: this needs to be tested more, we might need to look closer for crypto currencies

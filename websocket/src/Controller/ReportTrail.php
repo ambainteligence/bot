@@ -5,9 +5,10 @@ namespace App\Controller;
 trait ReportTrail
 {
     use Date;
-    public function reportPriceResultTime($price, $result, $time, $prevCandles = '')
+    public function reportPriceResultTime($price, $time, $prevCandles = '')
     {
-        $result = $this->changeResultToString($result);
+//        $result = $this->changeResultToString($result);
+        $result = '';
         $time = $this->changeMillisecondToTimeString($time, 'H:i');
         return "Current price: {$price}  {$result} {$prevCandles} {$time}";
     }

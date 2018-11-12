@@ -34,7 +34,7 @@ class BinanceController extends Controller
     const CANDLE_TIME = '15m';
     const PERCENT_BUY = '100%';
     const PERCENT_SELL = '100%';
-    const LIMITED_PERCENT = -0.4;
+    const LIMITED_PERCENT = -0.3;
 
     const BUY  = 'buy';
     const SELL = 'sell';
@@ -53,7 +53,20 @@ class BinanceController extends Controller
 
     use CandlesTrait;
     use Strategies;
+    use CustomStrategies;
     use ReportTrail;
+    use ManagerLogic;
+
+    public $buyConditions = [
+        ['phuongb_bowhead_macd', self::SHOULD_BUY, 'AND'],
+        ['phuongb_bowhead_macd', self::SHOULD_SELL, 'AND', 3, 'ALL'],
+        ['phuongb_mfi', self::SHOULD_BUY, 'OR'],
+    ];
+
+    public $sellConditions = [
+        ['phuongb_bowhead_macd', self::SHOULD_SELL, 'AND'],
+        ['phuongb_mfi', self::SHOULD_SELL, 'OR'],
+    ];
 
     public function __construct(HelperService $helper, TemplateService $templateService)
     {
@@ -89,18 +102,14 @@ class BinanceController extends Controller
     {
         ini_set('trader.real_precision', '8');
 
-        $myTime = $this->changeTimeStringToMilliSecond('24:10:2018 19:45', 'd:m:Y H:i');
+        $myTime = $this->changeTimeStringToMilliSecond('12:11:2018 18:45', 'd:m:Y H:i');
         $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 50, null, $myTime);
         $text = '';
-        $prevCandles = $this->getSameResultsOfStrategy($candles, 'phuongb_bowhead_macd', 4, $text);
-        dump($prevCandles);
 
-//        $prevCandles = $this->getResultOfStrategy($candles, 'bowhead_5th_element', 0, $text);
-//
-//        0.00067
+        dump($this->processActions($candles, $this->buyConditions, $text));
 //        $prevCandles = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
 
-        return new Response('ok');
+        return new Response('ok123');
     }
 
     public function testWebsocket()
@@ -127,34 +136,21 @@ class BinanceController extends Controller
                 $text = '';
 
                 $ex = $this->helper->getExchange('bn', 1);
-                $macd = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
                 $candle = end($candles);
 
-                $prevCandles = null;
-                $prevCandlesStr = '';
-                if ($macd === self::SHOULD_BUY) {
-                    $prevCandles = $this->getSameResultsOfStrategy($candles, 'phuongb_bowhead_macd', self::PREVIOUS_CANDLES);
-                    $prevCandle = end($candles);
-                    $prevCandleTime = $this->changeMillisecondToTimeString($prevCandle['openTime'], 'H:i');
-                    if ($prevCandles == 0) {
-                        $prevCandlesStr = ', can not buy because previous candles do not same values';
-                    }
-                    else {
-                        $prevCandlesStr = ($prevCandles === 1) ? self::BUY : self::SELL;
-                        $prevCandlesStr = ', Previous ' . self::PREVIOUS_CANDLES . ' candle: ' . $prevCandlesStr . ' at ' . $prevCandleTime . ' | ';
-                    }
-                }
-                $text = $this->reportPriceResultTime($candle['open'], $macd, $candle['openTime'], $prevCandlesStr);
+                $text = $this->reportPriceResultTime($candle['open'], $candle['openTime'], $text);
                 $action = 0;
 
                 // has buyer
                 if ($activity = $this->helper->findActivityByOutcome(1, self::BUY)) {
+                    $sellResult = $this->processActions($candles, $this->sellConditions, $text);
+
                     $beforeData = json_decode($activity->getData(), true);
                     $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
                     $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
                     $data['percent'] = $percent . '%';
-
-                    if ($macd === self::SHOULD_SELL) {
+                    // set logic at here
+                    if ($sellResult) {
                         if ($percent > self::LIMITED_PERCENT) {
                             $activity->setOutcome(self::SELL);
                             $activity->setData(json_encode($data));
@@ -173,19 +169,23 @@ class BinanceController extends Controller
                         }
                     }
                 }
-                elseif ($macd === self::SHOULD_BUY && $prevCandles  === self::SHOULD_SELL)
+                else
                 {
-                    // buy at here
-                    // $uuid, $uid, $class, $exchange, $outcome, $data
-                    $data = ['price' => $ex->getCurrentPrice('ADAUSDT'), 'close' => $currentClose, 'prev' => $preCurrentClose];
-                    $this->helper->insertActivity(Uuid::uuid4()->toString(), 1, 'App\Command\BuyCommand', 'bn', self::BUY, $data);
-                    $text .= ' ready for buyer';
-                    Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
+                    $buyResult = $this->processActions($candles, $this->buyConditions, $text);
+                    if ($buyResult) {
+                        // buy at here
+                        // $uuid, $uid, $class, $exchange, $outcome, $data
+                        $data = ['price' => $ex->getCurrentPrice('ADAUSDT'), 'close' => $currentClose, 'prev' => $preCurrentClose];
+                        $this->helper->insertActivity(Uuid::uuid4()->toString(), 1, 'App\Command\BuyCommand', 'bn', self::BUY, $data);
+                        $text .= ' ready for buyer';
+                        Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
 
-                    // buy symbol
-                    $this->helper->binanceBuy(self::SYMBOL, 1, $data['price'], self::PERCENT_BUY);
-                    $action = 1;
+                        // buy symbol
+                        $this->helper->binanceBuy(self::SYMBOL, 1, $data['price'], self::PERCENT_BUY);
+                        $action = 1;
+                    }
                 }
+
 
                 if (0 === $action) {
                     $this->recheckActionTrading();
