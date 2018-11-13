@@ -1058,12 +1058,11 @@ trait Strategies
         $h4 = array_pop($hist);
         $h5 = array_pop($hist);
 
-        $text .= ' macd base: ' . $macd_base;
-        $text .= ' h1: ' . $h1;
-        $text .= ' h2: ' . $h2;
-        $text .= ' h3: ' . $h3;
-        //    $text .= ' h4: ' . $h4;
-        //    $text .= ' h5: ' . $h5;
+//        $text .= ' macd base: ' . $macd_base;
+//        $text .= ' h1: ' . $h1;
+//        $text .= ' h2: ' . $h2;
+//        $text .= ' h3: ' . $h3;
+
 
         //    if ($macd_base && ($h1 > $h2 && $h2 > $h3 && $h3 > $h4 && $h4 > $h5)) {
         if ($macd_base && ($h1 > $h2 && $h2 > $h3 && $h3 > $h4)) {
