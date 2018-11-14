@@ -61,6 +61,7 @@ trait CustomStrategies
             return 1; // should buy
         }
 
+        $text .= ' current Mfi: ' . (int) $currentMfi . ' ==> normal';
         return 0;
     }
 
