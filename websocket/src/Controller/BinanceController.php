@@ -58,14 +58,14 @@ class BinanceController extends Controller
     use ManagerLogic;
 
     public $buyConditions = [
-        ['phuongb_bowhead_macd', self::SHOULD_BUY, 'AND'],
-        ['phuongb_bowhead_macd', self::SHOULD_SELL, 'AND', 3, 'ALL'],
-        ['phuongb_mfi', self::SHOULD_BUY, 'OR'],
+//        ['phuongb_bowhead_macd', self::SHOULD_BUY, 'AND'],
+//        ['phuongb_bowhead_macd', self::SHOULD_SELL, 'AND', 3, 'ALL'],
+        ['phuongb_mfi', self::SHOULD_BUY, 'AND'],
     ];
 
     public $sellConditions = [
-        ['phuongb_bowhead_macd', self::SHOULD_SELL, 'AND'],
-        ['phuongb_mfi', self::SHOULD_SELL, 'OR'],
+//        ['phuongb_bowhead_macd', self::SHOULD_SELL, 'AND'],
+        ['phuongb_mfi', self::SHOULD_SELL, 'AND'],
     ];
 
     public function __construct(HelperService $helper, TemplateService $templateService)
@@ -102,10 +102,16 @@ class BinanceController extends Controller
     {
         ini_set('trader.real_precision', '8');
 
-        $myTime = $this->changeTimeStringToMilliSecond('12:11:2018 18:45', 'd:m:Y H:i');
+        $myTime = $this->changeTimeStringToMilliSecond('14:11:2018 04:00', 'd:m:Y H:i');
         $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 50, null, $myTime);
         $text = '';
 
+        // atr
+        $this->buyConditions = [
+            ['phuongb_atr', self::SHOULD_BUY, 'AND'],
+//            ['phuongb_bowhead_macd', self::SHOULD_SELL, 'AND', 3, 'ALL'],
+//            ['phuongb_mfi', self::SHOULD_BUY, 'OR'],
+        ];
         dump($this->processActions($candles, $this->buyConditions, $text));
 //        $prevCandles = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
 
@@ -151,7 +157,7 @@ class BinanceController extends Controller
                     $data['percent'] = $percent . '%';
                     // set logic at here
                     if ($sellResult) {
-                        if ($percent > self::LIMITED_PERCENT) {
+//                        if ($percent > self::LIMITED_PERCENT) {
                             $activity->setOutcome(self::SELL);
                             $activity->setData(json_encode($data));
                             $this->helper->updateActivityForSeller($activity);
@@ -163,10 +169,10 @@ class BinanceController extends Controller
                             $text .= ' ready for seller. Percent: ' . $data['percent'];
                             Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
                             $action = 1;
-                        }
-                        else {
-                            $text .= ' Can not sell because current percent: ' . $data['percent'];
-                        }
+//                        }
+//                        else {
+//                            $text .= ' Can not sell because current percent: ' . $data['percent'];
+//                        }
                     }
                 }
                 else
