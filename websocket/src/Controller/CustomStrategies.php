@@ -73,8 +73,13 @@ trait CustomStrategies
         $beforeData = json_decode($activity->getData(), true);
         $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
         $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
+        // set mfi
+        // case the user is blocked and below 50 then can not buy
+        $indicators = new CustomIndicators();
+        list($lastLastMfi, $lastMfi, $currentMfi) = $indicators->phuongMfis($pair, $data);
+
         // current percent smaller than limited percent
-        if ($percent <= self::LIMITED_PERCENT) {
+        if ($percent <= self::LIMITED_PERCENT && $currentMfi < 20) {
             $user = $this->helper->findUserById($uid);
             $user->setStatus(self::BLOCK);
             $this->helper->updateEntity($user);
