@@ -65,6 +65,47 @@ trait CustomStrategies
         return 0;
     }
 
+    public function phuongb_sell_stop_limit($pair, $data, $return_full = false, &$text = '')
+    {
+        $uid = 1;
+        $ex = $this->helper->getExchange('bn', $uid);
+        $activity = $this->helper->findActivityByOutcome($uid, self::BUY);
+        $beforeData = json_decode($activity->getData(), true);
+        $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
+        $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
+        // current percent smaller than limited percent
+        if ($percent <= self::LIMITED_PERCENT) {
+            $user = $this->helper->findUserById($uid);
+            $user->setStatus(self::BLOCK);
+            $this->helper->updateEntity($user);
+            $text .= ' The user was stop-limited';
+            return -1;
+        }
+        return 0;
+    }
+
+    public function phuongb_buy_stop_limit($pair, $data, $return_full = false, &$text = '')
+    {
+        $uid = 1;
+        // normal with active user
+        $user = $this->helper->findUserById($uid);
+        if (self::ACTIVE == $user->getStatus()) {
+            return 1;
+        }
+
+        // case the user is blocked and below 50 then can not buy
+        $indicators = new CustomIndicators();
+        list($lastLastMfi, $lastMfi, $currentMfi) = $indicators->phuongMfis($pair, $data);
+        if ($currentMfi < 50) {
+            $text .= ' the user is blocked';
+            return 0;
+        }
+        // Active the user
+        $user->setStatus(self::ACTIVE);
+        $this->helper->updateEntity($user);
+        return 1;
+    }
+
 //    public function phuongb_vol($pair, $data, $return_full = false, &$text = '')
 //    {
 //        $indicators = new Indicators();

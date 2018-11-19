@@ -161,7 +161,7 @@ class HelperService
         $this->entityManage->flush();
     }
 
-    public function updateActivityForSeller($activity)
+    public function updateEntity($activity)
     {
         $this->entityManage->persist($activity);
         $this->entityManage->flush();

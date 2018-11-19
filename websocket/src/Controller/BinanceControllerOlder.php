@@ -148,7 +148,7 @@ class BinanceControllerOlder extends Controller
               $data['percent'] = $ex->percentIncreate($data['before_buyer'], $data['current_price']) . '%';
               $activity->setOutcome(self::SELL);
               $activity->setData(json_encode($data));
-              $this->helper->updateActivityForSeller($activity);
+              $this->helper->updateEntity($activity);
               $text = ' ready for seller';
               Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
             }

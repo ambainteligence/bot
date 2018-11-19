@@ -34,7 +34,7 @@ class BinanceController extends Controller
     const CANDLE_TIME = '15m';
     const PERCENT_BUY = '100%';
     const PERCENT_SELL = '100%';
-    const LIMITED_PERCENT = -0.3;
+    const LIMITED_PERCENT = -2;
 
     const BUY  = 'buy';
     const SELL = 'sell';
@@ -42,13 +42,16 @@ class BinanceController extends Controller
     const SHOULD_SELL = -1;
     const SHOULD_BUY  = 1;
 
+    const BLOCK = 0;
+    const ACTIVE = 1;
+
     private $botApiKey;
     private $botUserName;
     private $botChatId;
     private $binanceKey;
     private $binanceSecret;
     private $binance;
-    private $helper;
+    public $helper;
     private $templateService;
 
     use CandlesTrait;
@@ -61,11 +64,13 @@ class BinanceController extends Controller
 //        ['phuongb_bowhead_macd', self::SHOULD_BUY, 'AND'],
 //        ['phuongb_bowhead_macd', self::SHOULD_SELL, 'AND', 3, 'ALL'],
         ['phuongb_mfi', self::SHOULD_BUY, 'AND'],
+        ['phuongb_buy_stop_limit', self::SHOULD_BUY, 'AND'],
     ];
 
     public $sellConditions = [
 //        ['phuongb_bowhead_macd', self::SHOULD_SELL, 'AND'],
         ['phuongb_mfi', self::SHOULD_SELL, 'AND'],
+        ['phuongb_sell_stop_limit', self::SHOULD_SELL, 'OR']
     ];
 
     public function __construct(HelperService $helper, TemplateService $templateService)
@@ -108,7 +113,7 @@ class BinanceController extends Controller
 
         // atr
         $this->buyConditions = [
-            ['phuongb_atr', self::SHOULD_BUY, 'AND'],
+            ['phuongb_sell_stop_limit', self::SHOULD_BUY, 'AND'],
 //            ['phuongb_bowhead_macd', self::SHOULD_SELL, 'AND', 3, 'ALL'],
 //            ['phuongb_mfi', self::SHOULD_BUY, 'OR'],
         ];
@@ -160,7 +165,7 @@ class BinanceController extends Controller
 //                        if ($percent > self::LIMITED_PERCENT) {
                             $activity->setOutcome(self::SELL);
                             $activity->setData(json_encode($data));
-                            $this->helper->updateActivityForSeller($activity);
+                            $this->helper->updateEntity($activity);
 
                             // sell symbol
                             $money = $this->helper->binanceSell(self::SYMBOL, 1, $data['current_price'], self::PERCENT_SELL);
