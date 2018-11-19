@@ -174,6 +174,9 @@ class BinanceController extends Controller
 //                            $text .= ' Can not sell because current percent: ' . $data['percent'];
 //                        }
                     }
+                    else {
+                        $text .= ' current percent: ' . $data['percent'];
+                    }
                 }
                 else
                 {
