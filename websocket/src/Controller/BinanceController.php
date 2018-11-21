@@ -34,7 +34,7 @@ class BinanceController extends Controller
     const CANDLE_TIME = '15m';
     const PERCENT_BUY = '100%';
     const PERCENT_SELL = '100%';
-    const LIMITED_PERCENT = -2;
+    const LIMITED_PERCENT = -1;
 
     const BUY  = 'buy';
     const SELL = 'sell';
@@ -106,20 +106,18 @@ class BinanceController extends Controller
     public function testWebsocket1()
     {
         ini_set('trader.real_precision', '8');
+        $ex = $this->helper->getExchange('bn', 1);
 
-        $myTime = $this->changeTimeStringToMilliSecond('14:11:2018 04:00', 'd:m:Y H:i');
+        $myTime = $this->changeTimeStringToMilliSecond('19:11:2018 12:45', 'd:m:Y H:i');
         $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 50, null, $myTime);
         $text = '';
 
-        // atr
-        $this->buyConditions = [
-            ['phuongb_sell_stop_limit', self::SHOULD_BUY, 'AND'],
-//            ['phuongb_bowhead_macd', self::SHOULD_SELL, 'AND', 3, 'ALL'],
-//            ['phuongb_mfi', self::SHOULD_BUY, 'OR'],
-        ];
-        dump($this->processActions($candles, $this->buyConditions, $text));
-//        $prevCandles = $this->getResultOfStrategy($candles, 'phuongb_bowhead_macd', 0, $text);
-
+        $activity = $this->helper->findActivityByOutcome(1, self::BUY);
+        $sellResult = $this->processActions($candles, $this->sellConditions, $text);
+        $beforeData = json_decode($activity->getData(), true);
+        $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
+        $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
+        $data['percent'] = $percent . '%';
         return new Response('ok123');
     }
 

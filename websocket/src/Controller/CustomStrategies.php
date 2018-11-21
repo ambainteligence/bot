@@ -68,18 +68,15 @@ trait CustomStrategies
     public function phuongb_sell_stop_limit($pair, $data, $return_full = false, &$text = '')
     {
         $uid = 1;
+
         $ex = $this->helper->getExchange('bn', $uid);
         $activity = $this->helper->findActivityByOutcome($uid, self::BUY);
         $beforeData = json_decode($activity->getData(), true);
         $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
         $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
-        // set mfi
-        // case the user is blocked and below 50 then can not buy
-        $indicators = new CustomIndicators();
-        list($lastLastMfi, $lastMfi, $currentMfi) = $indicators->phuongMfis($pair, $data);
 
         // current percent smaller than limited percent
-        if ($percent <= self::LIMITED_PERCENT && $currentMfi < 20) {
+        if ($percent <= self::LIMITED_PERCENT) {
             $user = $this->helper->findUserById($uid);
             $user->setStatus(self::BLOCK);
             $this->helper->updateEntity($user);
@@ -101,7 +98,7 @@ trait CustomStrategies
         // case the user is blocked and below 50 then can not buy
         $indicators = new CustomIndicators();
         list($lastLastMfi, $lastMfi, $currentMfi) = $indicators->phuongMfis($pair, $data);
-        if ($currentMfi < 50) {
+        if ($currentMfi < 70) {
             $text .= ' the user is blocked';
             return 0;
         }
