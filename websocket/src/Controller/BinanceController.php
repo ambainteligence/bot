@@ -105,19 +105,21 @@ class BinanceController extends Controller
 
     public function testWebsocket1()
     {
-        ini_set('trader.real_precision', '8');
-        $ex = $this->helper->getExchange('bn', 1);
+//        ini_set('trader.real_precision', '8');
+//        $ex = $this->helper->getExchange('bn', 1);
+//
+//        $myTime = $this->changeTimeStringToMilliSecond('19:11:2018 12:45', 'd:m:Y H:i');
+//        $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 50, null, $myTime);
+//        $text = '';
+//
+//        $activity = $this->helper->findActivityByOutcome(1, self::BUY);
+//        $sellResult = $this->processActions($candles, $this->sellConditions, $text);
+//        $beforeData = json_decode($activity->getData(), true);
+//        $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
+//        $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
+//        $data['percent'] = $percent . '%';
 
-        $myTime = $this->changeTimeStringToMilliSecond('19:11:2018 12:45', 'd:m:Y H:i');
-        $candles = $this->binance->candlesticks(self::SYMBOL, self::CANDLE_TIME, $range = 50, null, $myTime);
-        $text = '';
-
-        $activity = $this->helper->findActivityByOutcome(1, self::BUY);
-        $sellResult = $this->processActions($candles, $this->sellConditions, $text);
-        $beforeData = json_decode($activity->getData(), true);
-        $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
-        $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
-        $data['percent'] = $percent . '%';
+//        dump($this->helper->findLatestActivity());
         return new Response('ok123');
     }
 
@@ -155,27 +157,22 @@ class BinanceController extends Controller
                     $sellResult = $this->processActions($candles, $this->sellConditions, $text);
 
                     $beforeData = json_decode($activity->getData(), true);
-                    $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
+                    $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice(self::SYMBOL)];
                     $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
                     $data['percent'] = $percent . '%';
                     // set logic at here
                     if ($sellResult) {
-//                        if ($percent > self::LIMITED_PERCENT) {
-                            $activity->setOutcome(self::SELL);
-                            $activity->setData(json_encode($data));
-                            $this->helper->updateEntity($activity);
+                        $activity->setOutcome(self::SELL);
+                        $activity->setData(json_encode($data));
+                        $this->helper->updateEntity($activity);
 
-                            // sell symbol
-                            $money = $this->helper->binanceSell(self::SYMBOL, 1, $data['current_price'], self::PERCENT_SELL);
-                            $this->helper->calculatorProfit($uid = 1, date('d/m/Y'), $percent, $money);
+                        // sell symbol
+                        $money = $this->helper->binanceSell(self::SYMBOL, 1, $data['current_price'], self::PERCENT_SELL);
+                        $this->helper->calculatorProfit($uid = 1, date('d/m/Y'), $percent, $money);
 
-                            $text .= ' ready for seller. Percent: ' . $data['percent'];
-                            Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
-                            $action = 1;
-//                        }
-//                        else {
-//                            $text .= ' Can not sell because current percent: ' . $data['percent'];
-//                        }
+                        $text .= ' ready for seller. Percent: ' . $data['percent'];
+                        Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
+                        $action = 1;
                     }
                     else {
                         $text .= ' current percent: ' . $data['percent'];
@@ -187,13 +184,13 @@ class BinanceController extends Controller
                     if ($buyResult) {
                         // buy at here
                         // $uuid, $uid, $class, $exchange, $outcome, $data
-                        $data = ['price' => $ex->getCurrentPrice('ADAUSDT'), 'close' => $currentClose, 'prev' => $preCurrentClose];
+                        $data = ['price' => $ex->getCurrentPrice(self::SYMBOL), 'close' => $currentClose, 'prev' => $preCurrentClose];
                         $this->helper->insertActivity(Uuid::uuid4()->toString(), 1, 'App\Command\BuyCommand', 'bn', self::BUY, $data);
-                        $text .= ' ready for buyer';
-                        Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
-
                         // buy symbol
                         $this->helper->binanceBuy(self::SYMBOL, 1, $data['price'], self::PERCENT_BUY);
+
+                        $text .= ' ready for buyer';
+                        Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
                         $action = 1;
                     }
                 }
@@ -201,6 +198,14 @@ class BinanceController extends Controller
 
                 if (0 === $action) {
                     $this->recheckActionTrading();
+
+                    $activity = $this->helper->findLatestActivity();
+                    $currentPrice = $ex->getCurrentPrice(self::SYMBOL);
+                    $beforeData = json_decode($activity->getData(), true);
+                    $data = ['before_buyer' => $beforeData['current_price'], 'current_price' => $currentPrice];
+                    $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
+                    $data['percent'] = $percent . '%';
+                    $text .= ' compare lastest price: ' . $data['percent'];
                     Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
                 }
             }
@@ -214,9 +219,10 @@ class BinanceController extends Controller
 
     public function recheckActionTrading()
     {
-        $ex = $this->helper->getExchange('bn', 1);
         $uid = 1;
-        $price = $ex->getCurrentPrice('ADAUSDT');
+        $ex = $this->helper->getExchange('bn', $uid);
+
+        $price = $ex->getCurrentPrice(self::SYMBOL);
         if ($activity = $this->helper->findActivityByOutcome($uid, self::BUY)) {
             if ($this->helper->checkQuantity(self::SYMBOL, $uid, self::BUY)) {
                 $this->helper->binanceBuy(self::SYMBOL, $uid, $price, self::PERCENT_BUY);
