@@ -133,6 +133,11 @@ class HelperService
         return $this->activityRepo->findOneBy(['uid' => $userId, 'outcome' => $outcome]);
     }
 
+    public function findLatestActivity()
+    {
+        return $this->activityRepo->findOneBy([], ['id' => 'DESC']);
+    }
+
     public function findActivityByOrderId($orderId): ?Activity
     {
         return $this->activityRepo->findOneBy(['tradeId' => $orderId]);
