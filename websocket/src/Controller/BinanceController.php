@@ -205,7 +205,7 @@ class BinanceController extends Controller
                     $data = ['before_buyer' => $beforeData['current_price'], 'current_price' => $currentPrice];
                     $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
                     $data['percent'] = $percent . '%';
-                    $text .= ' ==> latest price: ' . $data['percent'];
+                    $text .= ' ==> percent: ' . $data['percent'];
                     Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
                 }
             }
