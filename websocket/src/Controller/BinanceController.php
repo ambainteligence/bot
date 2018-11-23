@@ -200,12 +200,14 @@ class BinanceController extends Controller
                     $this->recheckActionTrading();
 
                     $activity = $this->helper->findLatestActivity();
-                    $currentPrice = $ex->getCurrentPrice(self::SYMBOL);
-                    $beforeData = json_decode($activity->getData(), true);
-                    $data = ['before_buyer' => $beforeData['current_price'], 'current_price' => $currentPrice];
-                    $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
-                    $data['percent'] = $percent . '%';
-                    $text .= ' ==> percent: ' . $data['percent'];
+                    if (self::SELL == $activity->getOutcome()) {
+                        $currentPrice = $ex->getCurrentPrice(self::SYMBOL);
+                        $beforeData = json_decode($activity->getData(), true);
+                        $data = ['before_buyer' => $beforeData['current_price'], 'current_price' => $currentPrice];
+                        $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
+                        $data['percent'] = $percent . '%';
+                        $text .= ' ==> percent: ' . $data['percent'];
+                    }
                     Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
                 }
             }
