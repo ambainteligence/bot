@@ -4,7 +4,6 @@ namespace App\Controller;
 
 trait ReportTrail
 {
-    use Date;
     public function reportPriceResultTime($price, $time, $prevCandles = '')
     {
 //        $result = $this->changeResultToString($result);
