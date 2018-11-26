@@ -73,10 +73,15 @@ trait CustomStrategies
         $activity = $this->helper->findActivityByOutcome($uid, self::BUY);
         $beforeData = json_decode($activity->getData(), true);
         $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
+        $milliSecondBuyTime = $this->changeTimeStringToMilliSecond($beforeData['time'], self::LONG_TIME_STRING);
+        $currentMilliSecondTime = $this->changeTimeStringToMilliSecond(date(self::LONG_TIME_STRING), self::LONG_TIME_STRING);
+        $pastMilliSecondTime = $this->reduceMilliSecondFromMinute($currentMilliSecondTime, self::LIMITED_TIME);
+
         $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
 
         // current percent smaller than limited percent
-        if ($percent <= self::LIMITED_PERCENT) {
+        // and buy time below with past time = 60m
+        if ($percent <= self::LIMITED_PERCENT && ($milliSecondBuyTime < $pastMilliSecondTime)) {
             $user = $this->helper->findUserById($uid);
             $user->setStatus(self::BLOCK);
             $this->helper->updateEntity($user);
@@ -93,7 +98,7 @@ trait CustomStrategies
         $ex = $this->helper->getExchange('bn', $uid);
         $activity = $this->helper->findActivityByOutcome($uid, self::BUY);
         $beforeData = json_decode($activity->getData(), true);
-        $buyTime = $this->changeTimeStringToMilliSecond($beforeData['time'], self::LONG_TIME_STRING);
+        $milliSecondBuyTime = $this->changeTimeStringToMilliSecond($beforeData['time'], self::LONG_TIME_STRING);
         $endMilliSecondTime = $this->changeTimeStringToMilliSecond(date(self::LONG_TIME_STRING), self::LONG_TIME_STRING);
         $startMilliSecondTime = $this->reduceMilliSecondFromMinute($endMilliSecondTime, 20 * $eachTime = 3);
 
@@ -103,7 +108,7 @@ trait CustomStrategies
         $overTarget = false;
         foreach($candles as $candle) {
             // skip if past with buy time
-            if ($candle['closeTime'] < $buyTime) {
+            if ($candle['closeTime'] < $milliSecondBuyTime) {
                 continue;
             }
 

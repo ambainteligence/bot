@@ -29,6 +29,7 @@ class BinanceController extends Controller
     const PERCENT_TARGET_PROFIT = 1;
     const PERCENT_LIMIT_PROFIT = 0.6;
     const LIMITED_PERCENT = -1;
+    const LIMITED_TIME = 60; // 60 minutes
 
     const BUY  = 'buy';
     const SELL = 'sell';
