@@ -86,6 +86,47 @@ trait CustomStrategies
         return 0;
     }
 
+    public function phuongb_sell_profit_stop_limit($pair, $data, $return_full = false, &$text = '')
+    {
+        $uid = 1;
+
+        $ex = $this->helper->getExchange('bn', $uid);
+        $activity = $this->helper->findActivityByOutcome($uid, self::BUY);
+        $beforeData = json_decode($activity->getData(), true);
+        $buyTime = $this->changeTimeStringToMilliSecond($beforeData['time'], self::LONG_TIME_STRING);
+        $endMilliSecondTime = $this->changeTimeStringToMilliSecond(date(self::LONG_TIME_STRING), self::LONG_TIME_STRING);
+        $startMilliSecondTime = $this->reduceMilliSecondFromMinute($endMilliSecondTime, 20 * $eachTime = 3);
+
+        $candles = $this->binance->candlesticks(self::SYMBOL, '3m', $range = 50, $startMilliSecondTime, $endMilliSecondTime);
+
+        // target = 1 percent from buy price
+        $overTarget = false;
+        foreach($candles as $candle) {
+            // skip if past with buy time
+            if ($candle['closeTime'] < $buyTime) {
+                continue;
+            }
+
+            $percent = $ex->percentIncreate($beforeData['price'], $candle['open']);
+            if ($percent > self::PERCENT_TARGET_PROFIT) {
+                $overTarget = true;
+                break;
+            }
+        }
+
+        $currentPrice = $ex->getCurrentPrice(self::SYMBOL);
+        $profit = $ex->percentIncreate($beforeData['price'], $currentPrice);
+        if ($overTarget && ($profit < self::PERCENT_LIMIT_PROFIT)) {
+            $user = $this->helper->findUserById($uid);
+            $user->setStatus(self::BLOCK);
+            $this->helper->updateEntity($user);
+            $text .= ' The user was stop-limited';
+            return -1;
+        }
+
+        return 0;
+    }
+
     public function phuongb_buy_stop_limit($pair, $data, $return_full = false, &$text = '')
     {
         $uid = 1;

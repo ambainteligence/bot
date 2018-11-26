@@ -25,4 +25,9 @@ trait Date
         return date($format, $timestamp);
     }
 
+    public function reduceMilliSecondFromMinute($milliSecond, $minutes)
+    {
+        return ($milliSecond - ($minutes * 60 * 1000));
+    }
+
 }
