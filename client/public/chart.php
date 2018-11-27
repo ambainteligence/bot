@@ -9,7 +9,7 @@
                 "height": 610,
                 "symbol": "BINANCE:ADAUSDT",
                 "interval": "H",
-                "timezone": "Etc/UTC",
+                "timezone": "Asia/Ho_Chi_Minh",
                 "theme": "Light",
                 "style": "1",
                 "locale": "en",
@@ -17,7 +17,8 @@
                 "enable_publishing": false,
                 "allow_symbol_change": true,
                 "studies": [
-                    "BB@tv-basicstudies"
+                    "BB@tv-basicstudies",
+                    "CCI@tv-basicstudies"
                 ],
                 "container_id": "tradingview_78453"
             }
