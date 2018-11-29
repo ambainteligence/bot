@@ -108,16 +108,16 @@ class BinanceController extends Controller
         $ex = $this->helper->getExchange('bn', 1);
 
 //        $myTime = $this->changeTimeStringToMilliSecond('19:11:2018 12:45', self::LONG_TIME_STRING);
-        $myTime = $this->changeTimeStringToMilliSecond('26:11:2018 17:15', self::LONG_TIME_STRING);
-//        $currentTime = $this->changeTimeStringToMilliSecond(date(self::LONG_TIME_STRING), self::LONG_TIME_STRING);
-        $candles = $this->binance->candlesticks(self::SYMBOL, '3m', $range = 50, null, $myTime);
-//        $data = $this->changeCandlesToData($candles);
-//        $openCandles = $data['open'];
-
-        $text = '';
-
-//        $activity = $this->helper->findActivityByOutcome(1, self::BUY);
-        $sellResult = $this->processActions($candles, $this->sellConditions, $text);
+//        $myTime = $this->changeTimeStringToMilliSecond('26:11:2018 17:15', self::LONG_TIME_STRING);
+////        $currentTime = $this->changeTimeStringToMilliSecond(date(self::LONG_TIME_STRING), self::LONG_TIME_STRING);
+//        $candles = $this->binance->candlesticks(self::SYMBOL, '3m', $range = 50, null, $myTime);
+////        $data = $this->changeCandlesToData($candles);
+////        $openCandles = $data['open'];
+//
+//        $text = '';
+//
+////        $activity = $this->helper->findActivityByOutcome(1, self::BUY);
+//        $sellResult = $this->processActions($candles, $this->sellConditions, $text);
 //        $beforeData = json_decode($activity->getData(), true);
 //        $data = ['before_buyer' => $beforeData['price'], 'current_price' => $ex->getCurrentPrice('ADAUSDT')];
 //        $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
@@ -206,6 +206,7 @@ class BinanceController extends Controller
 
                 if (0 === $action) {
                     $this->recheckActionTrading();
+                    $this->recheckStatus($text);
 
                     $activity = $this->helper->findLatestActivity();
                     if (self::SELL == $activity->getOutcome()) {
@@ -243,6 +244,39 @@ class BinanceController extends Controller
                 $this->helper->binanceSell(self::SYMBOL, $uid, $price, self::PERCENT_SELL);
             }
         }
+    }
+
+    public function recheckStatus(&$text)
+    {
+        $uid = 1;
+        $ex = $this->helper->getExchange('bn', $uid);
+        $activity = $this->helper->findLatestActivity();
+        $data = json_decode($activity->getData(), true);
+        $timeStr = (self::BUY == $activity->getOutcome()) ? $data['time'] : $data['sell_time'];
+        $timeOrder = $this->changeTimeStringToMilliSecond($timeStr, self::LONG_TIME_STRING);
+        $currentTime = $this->changeTimeStringToMilliSecond(date(self::LONG_TIME_STRING), self::LONG_TIME_STRING);
+
+        // skip if current time - minutes smaller than time order
+        $currentTime = $this->reduceMilliSecondFromMinute($currentTime, $m = 15);
+        if ($currentTime < $timeOrder) {
+            return;
+        }
+
+        // return if it's fill
+        if (isset($data['fill']) && $fill = $data['fill']) {
+            return;
+        }
+
+        // if open order then show message
+        if ($ex->getOpenOrder(self::SYMBOL)) {
+            $text .= ' Warning: ' . self::SYMBOL . ' does not fill';
+            return ;
+        }
+
+        // if order is filled then update status
+        $data['fill'] = true;
+        $activity->setData(json_encode($data));
+        $this->helper->updateEntity($activity);
     }
 
 }
