@@ -154,6 +154,37 @@ trait CustomStrategies
         return 1;
     }
 
+    public function phuongb_going_to_buy($pair, $data, $return_full = false, &$text = '')
+    {
+        $uid = 1;
+        $activity = $this->helper->findLatestActivity();
+        $data = json_decode($activity->getData(), true);
+        $ex = $this->helper->getExchange('bn', $uid);
+        $currentPrice = $ex->getCurrentPrice(self::SYMBOL);
+
+        if (false === $this->getResults()) {
+            return 0;
+        }
+
+        if (!isset($data['price_going_buy'])) {
+            $data['price_going_buy'] = $currentPrice;
+            $activity->setData(json_encode($data));
+            $this->helper->updateEntity($activity);
+            return 0;
+        }
+
+        $priceGoingBuy = $data['price_going_buy'];
+        $profit = $ex->percentIncreate($priceGoingBuy, $currentPrice);
+        // -0.5 < 0.1
+        if (self::PERCENT_GOING_BUY < $profit) {
+            $text .= ' can not buy because current profit: ' . $profit;
+            return 0;
+        }
+
+        // -0.5% > -1%
+        return 1;
+    }
+
 //    public function phuongb_vol($pair, $data, $return_full = false, &$text = '')
 //    {
 //        $indicators = new Indicators();
