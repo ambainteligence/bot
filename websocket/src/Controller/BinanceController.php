@@ -31,6 +31,9 @@ class BinanceController extends Controller
     const LIMITED_PERCENT = -1;
     const LIMITED_TIME = 30; // 60 minutes
 
+    // going to buy
+    const PERCENT_GOING_BUY = -0.5;
+
     const BUY  = 'buy';
     const SELL = 'sell';
 
@@ -63,6 +66,7 @@ class BinanceController extends Controller
 //        ['phuongb_bowhead_macd', self::SHOULD_SELL, 'AND', 3, 'ALL'],
         ['phuongb_mfi', self::SHOULD_BUY, 'AND'],
         ['phuongb_buy_stop_limit', self::SHOULD_BUY, 'AND'],
+        ['phuongb_going_to_buy', self::SHOULD_BUY, 'AND'],
     ];
 
     public $sellConditions = [

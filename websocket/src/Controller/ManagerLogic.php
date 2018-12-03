@@ -10,6 +10,7 @@ namespace App\Controller;
 
 trait ManagerLogic
 {
+    private $results = true;
 
     public function getPreviousTime($conditions) {
         if (4 == count($conditions)) {
@@ -27,7 +28,6 @@ trait ManagerLogic
     }
 
     public function processActions($candles = [], $conditions = [], &$text = '') {
-        $results = true;
         foreach ($conditions as $condition) {
             $singleOrAll = $this->getSingleOrAll($condition);
             $previousTime = $this->getPreviousTime($condition);
@@ -41,13 +41,18 @@ trait ManagerLogic
             if ('AND' == $operator) {
                 // 1 && (sell = sell)
                 // 1 && (buy = buy)
-                $results = $results && ($target === $result);
+                $this->results = $this->results && ($target === $result);
             }
             else {
-                $results = $results || ($target === $result);
+                $this->results = $this->results || ($target === $result);
             }
         }
-        return $results;
+        return $this->results;
+    }
+
+    public function getResults()
+    {
+        return $this->results;
     }
 
 }
