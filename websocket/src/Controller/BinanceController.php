@@ -37,7 +37,7 @@ class BinanceController extends Controller
     const BUY  = 'buy';
     const SELL = 'sell';
 
-    const SHOULD_SELL = -1;
+    const SHOULD_SELL = -0.8;
     const SHOULD_BUY  = 1;
 
     const BLOCK = 0;
