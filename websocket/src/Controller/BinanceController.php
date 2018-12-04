@@ -28,7 +28,7 @@ class BinanceController extends Controller
     // stop-limit
     const PERCENT_TARGET_PROFIT = 0.9;
     const PERCENT_LIMIT_PROFIT = 0.5;
-    const LIMITED_PERCENT = -1;
+    const LIMITED_PERCENT = -5;
     const LIMITED_TIME = 30; // 60 minutes
 
     // going to buy
@@ -37,7 +37,7 @@ class BinanceController extends Controller
     const BUY  = 'buy';
     const SELL = 'sell';
 
-    const SHOULD_SELL = -0.8;
+    const SHOULD_SELL = -1;
     const SHOULD_BUY  = 1;
 
     const BLOCK = 0;
