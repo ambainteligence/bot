@@ -108,13 +108,47 @@ class BinanceController extends Controller
 
     public function testWebsocket1()
     {
+        dump('aa');
         ini_set('trader.real_precision', '8');
         $ex = $this->helper->getExchange('bn', 1);
 
+
+        $myTime = $this->changeTimeStringToMilliSecond(date(self::LONG_TIME_STRING), self::LONG_TIME_STRING);
+//        $currentTime = $this->changeTimeStringToMilliSecond(date(self::LONG_TIME_STRING), self::LONG_TIME_STRING);
+        $candles = $this->binance->candlesticks(self::SYMBOL, '3m', $range = 50, null, $myTime);
+
+        if ($activity = $this->helper->findActivityByOutcome(1, self::BUY)) {
+            $sellResult = $this->processActions($candles, $this->sellConditions, $text);
+            dump($sellResult);
+            dump($text);
+        }
+        $beforeData = json_decode($activity->getData(), true);
+        $data = [
+            'before_buyer' => $beforeData['price'],
+            'time' => $beforeData['time'],
+            'current_price' => $ex->getCurrentPrice(self::SYMBOL),
+            'sell_time' =>  date(self::LONG_TIME_STRING)
+        ];
+        $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
+        $data['percent'] = $percent . '%';
+        // set logic at here
+//        if ($sellResult) {
+//            $activity->setOutcome(self::SELL);
+//            $activity->setData(json_encode($data));
+//            $this->helper->updateEntity($activity);
+//
+//            // sell symbol
+//            $money = $this->helper->binanceSell(self::SYMBOL, 1, $data['current_price'], self::PERCENT_SELL);
+//            $this->helper->calculatorProfit($uid = 1, date('d/m/Y'), $percent, $money);
+//
+//            $text .= ' ready for seller. Percent: ' . $data['percent'];
+////            Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
+//            $action = 1;
+//        }
+        dump($sellResult);
+//        dump($text);
+
 //        $myTime = $this->changeTimeStringToMilliSecond('19:11:2018 12:45', self::LONG_TIME_STRING);
-//        $myTime = $this->changeTimeStringToMilliSecond('26:11:2018 17:15', self::LONG_TIME_STRING);
-////        $currentTime = $this->changeTimeStringToMilliSecond(date(self::LONG_TIME_STRING), self::LONG_TIME_STRING);
-//        $candles = $this->binance->candlesticks(self::SYMBOL, '3m', $range = 50, null, $myTime);
 ////        $data = $this->changeCandlesToData($candles);
 ////        $openCandles = $data['open'];
 //
@@ -127,7 +161,7 @@ class BinanceController extends Controller
 //        $percent = $ex->percentIncreate($data['before_buyer'], $data['current_price']);
 //        $data['percent'] = $percent . '%';
 //        dump($this->helper->findLatestActivity());
-        return new Response('ok123');
+        return new Response('ok122223');
     }
 
     public function testWebsocket()
@@ -162,6 +196,7 @@ class BinanceController extends Controller
                 // has buyer
                 if ($activity = $this->helper->findActivityByOutcome(1, self::BUY)) {
                     $sellResult = $this->processActions($candles, $this->sellConditions, $text);
+                    $text .= 'sell results: ' . $sellResult;
 
                     $beforeData = json_decode($activity->getData(), true);
                     $data = [
