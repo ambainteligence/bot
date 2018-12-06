@@ -82,9 +82,7 @@ trait CustomStrategies
         // current percent smaller than limited percent
         // and buy time below with past time = 60m
         if ($percent <= self::LIMITED_PERCENT && ($milliSecondBuyTime < $pastMilliSecondTime)) {
-            $user = $this->helper->findUserById($uid);
-            $user->setStatus(self::BLOCK);
-            $this->helper->updateEntity($user);
+            $this->helper->blockUserById($uid);
             $text .= ' The user was stop-limited';
             return -1;
         }
@@ -122,9 +120,7 @@ trait CustomStrategies
         $currentPrice = $ex->getCurrentPrice(self::SYMBOL);
         $profit = $ex->percentIncreate($beforeData['price'], $currentPrice);
         if ($overTarget && ($profit < self::PERCENT_LIMIT_PROFIT)) {
-            $user = $this->helper->findUserById($uid);
-            $user->setStatus(self::BLOCK);
-            $this->helper->updateEntity($user);
+            $this->helper->blockUserById($uid);
             $text .= ' The user was stop-limited';
             return -1;
         }
@@ -149,8 +145,7 @@ trait CustomStrategies
             return 0;
         }
         // Active the user
-        $user->setStatus(self::ACTIVE);
-        $this->helper->updateEntity($user);
+        $this->helper->activeUserById($uid);
         return 1;
     }
 
