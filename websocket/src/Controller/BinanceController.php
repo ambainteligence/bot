@@ -216,8 +216,14 @@ class BinanceController extends Controller
                         // sell symbol
                         $money = $this->helper->binanceSell(self::SYMBOL, 1, $data['current_price'], self::PERCENT_SELL);
                         $this->helper->calculatorProfit($uid = 1, date('d/m/Y'), $percent, $money);
-
                         $text .= ' ready for seller. Percent: ' . $data['percent'];
+
+                        // block the user when percent smaller than 0
+                        if ($percent < 0) {
+                            $this->helper->blockUserById($uid);
+                            $text .= ' the user is blocked';
+                        }
+
                         Request::sendMessage(['chat_id' => $this->botChatId, 'text' => $text]);
                         $action = 1;
                     }
