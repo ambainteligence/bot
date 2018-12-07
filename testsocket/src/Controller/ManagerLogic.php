@@ -10,7 +10,7 @@ namespace App\Controller;
 
 trait ManagerLogic
 {
-    private $results = true;
+    private $results = null;
 
     public function getPreviousTime($conditions) {
         if (4 == count($conditions)) {
@@ -28,6 +28,7 @@ trait ManagerLogic
     }
 
     public function processActions($candles = [], $conditions = [], &$text = '') {
+        $this->results = true;
         foreach ($conditions as $condition) {
             $singleOrAll = $this->getSingleOrAll($condition);
             $previousTime = $this->getPreviousTime($condition);
