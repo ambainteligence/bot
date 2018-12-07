@@ -161,8 +161,9 @@ trait CustomStrategies
         $data = json_decode($activity->getData(), true);
         $ex = $this->helper->getExchange('bn', $uid);
         $currentPrice = $ex->getCurrentPrice(self::SYMBOL);
+        $text .= ' current result: ' . $result = $this->getResults();
 
-        if (false === $this->getResults()) {
+        if (false === $result) {
             return 0;
         }
 
