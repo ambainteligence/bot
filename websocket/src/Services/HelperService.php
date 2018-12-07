@@ -30,6 +30,9 @@ class HelperService
     CONST BINANCE_SIGN = 'bn';
     CONST BT_SIGN      = 'bt';
 
+    const BLOCK = 0;
+    const ACTIVE = 1;
+
     private $entityManage;
     private $activityRepo;
     private $userRepo;
@@ -153,7 +156,29 @@ class HelperService
         return $this->userRepo->find($id);
     }
 
-    public function insertActivity($uuid, $uid, $class, $exchange, $outcome, $data)
+    public function blockUserById($userId)
+    {
+        if (!$user = $this->findUserById($userId)) {
+            return false;
+        }
+
+        $user->setStatus(self::BLOCK);
+        $this->updateEntity($user);
+        return true;
+    }
+
+    public function activeUserById($userId)
+    {
+        if (!$user = $this->findUserById($userId)) {
+            return false;
+        }
+
+        $user->setStatus(self::ACTIVE);
+        $this->updateEntity($user);
+        return true;
+    }
+
+   public function insertActivity($uuid, $uid, $class, $exchange, $outcome, $data)
     {
         $activity = new Activity();
         $activity->setData(json_encode($data));
