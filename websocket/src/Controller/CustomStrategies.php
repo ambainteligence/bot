@@ -162,8 +162,14 @@ trait CustomStrategies
             return 0;
         }
 
+        // clear price_going_buy
+        if (isset($data['price_going_buy'])) {
+            $data = $this->phuongb_minutes_to_clear_price_going_buy($data, self::TIME_TO_CLEAR_GOING_BUY);
+        }
+
         if (!isset($data['price_going_buy'])) {
             $data['price_going_buy'] = $currentPrice;
+            $data['time_going_buy'] = date(self::LONG_TIME_STRING);
             $activity->setData(json_encode($data));
             $this->helper->updateEntity($activity);
             return 0;
@@ -179,6 +185,16 @@ trait CustomStrategies
 
         // -0.5% > -1%
         return 1;
+    }
+
+    public function phuongb_minutes_to_clear_price_going_buy($data, $minutes)
+    {
+        $millisecondGoingBuy = $this->changeTimeStringToMilliSecond($data['time_going_buy'], self::LONG_TIME_STRING);
+        $millisecondCurrent = $this->changeTimeStringToMilliSecond(date(self::LONG_TIME_STRING), self::LONG_TIME_STRING);
+        if ($millisecondGoingBuy > $this->reduceMilliSecondFromMinute($millisecondCurrent, $minutes)) {
+            unset($data['price_going_buy']);
+        }
+        return $data;
     }
 
 //    public function phuongb_vol($pair, $data, $return_full = false, &$text = '')
