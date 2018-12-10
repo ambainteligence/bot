@@ -164,7 +164,7 @@ trait CustomStrategies
 
         // clear price_going_buy
         if (isset($data['price_going_buy'])) {
-            $data = $this->phuongb_minutes_to_clear_price_going_buy($data, self::TIME_TO_CLEAR_GOING_BUY);
+            $data = $this->phuongb_minutes_to_clear_price_going_buy($data, self::TIME_TO_CLEAR_GOING_BUY, $text);
         }
 
         if (!isset($data['price_going_buy'])) {
@@ -187,12 +187,13 @@ trait CustomStrategies
         return 1;
     }
 
-    public function phuongb_minutes_to_clear_price_going_buy($data, $minutes)
+    public function phuongb_minutes_to_clear_price_going_buy($data, $minutes, &$text)
     {
         $millisecondGoingBuy = $this->changeTimeStringToMilliSecond($data['time_going_buy'], self::LONG_TIME_STRING);
         $millisecondCurrent = $this->changeTimeStringToMilliSecond(date(self::LONG_TIME_STRING), self::LONG_TIME_STRING);
-        if ($millisecondGoingBuy > $this->reduceMilliSecondFromMinute($millisecondCurrent, $minutes)) {
+        if ($millisecondGoingBuy < $this->reduceMilliSecondFromMinute($millisecondCurrent, $minutes)) {
             unset($data['price_going_buy']);
+            $text .= ' price is cleared';
         }
         return $data;
     }
