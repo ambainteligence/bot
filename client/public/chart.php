@@ -7,7 +7,7 @@
             {
                 "width": 980,
                 "height": 610,
-                "symbol": "BINANCE:ADAUSDT",
+                "symbol": "BINANCE:BNBPAX",
                 "interval": "H",
                 "timezone": "Asia/Ho_Chi_Minh",
                 "theme": "Light",
@@ -16,9 +16,14 @@
                 "toolbar_bg": "#f1f3f6",
                 "enable_publishing": false,
                 "allow_symbol_change": true,
+                "studies_overrides": {
+                    "moving average.length": 10,
+                    "bollinger bands.length": 14
+                },
                 "studies": [
                     "BB@tv-basicstudies",
-                    "CCI@tv-basicstudies"
+                    "CCI@tv-basicstudies",
+                    "MASimple@tv-basicstudies"
                 ],
                 "container_id": "tradingview_78453"
             }
@@ -27,4 +32,3 @@
 </div>
 
 <?php
-
